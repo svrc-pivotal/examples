@@ -16,7 +16,7 @@ Download and install software
 - f) ensure you have the appropriate Java version setup for Tomcat:  OpenAM 12.0 supports Java 8; OpenAM 11.0 requires Java 7
 
 
-**Note** OpenAM 11.0.0 GA has a bug with verifying XML signatures in later (v22+) JDK 7 releases.  See https://bugster.forgerock.org/jira/browse/OPENAM-2673 and https://bugster.forgerock.org/jira/browse/OPENAM-3920 ; The 11.x point releases require a Forgerock subscription; use OpenAM 12 - or if feely lucky, use an older JDK 7 (v21).
+**Note** I suggest using OpenAM 12.0.   OpenAM 11.0.0 GA has a bug with verifying XML signatures in later (v22+) JDK 7 releases.  See https://bugster.forgerock.org/jira/browse/OPENAM-2673 and https://bugster.forgerock.org/jira/browse/OPENAM-3920 ; The 11.x point releases require a Forgerock subscription; or if feely lucky, use an older JDK 7 (v21-).
 
 
 ###Step 2
@@ -28,7 +28,7 @@ Initialize OpenAM
 - d) Click Create
 (this will create the directory ~/openam
   if you wish to restart an installation, wipe this dir clean and restart tomcat)
-  - e) Log in as amAdmin and the password you just created
+- e) Log in as amAdmin and the password you just created
 
 ###Step 3
 Setup OpenAM as an Identity Provider (IDP)
@@ -41,6 +41,9 @@ Setup OpenAM as an Identity Provider (IDP)
 - f) In the 'NameID Value Map' section, add `urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified=mail`
 - g) Delete the blank `urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified=` entry
 - h) Click 'Save'
+
+**Note** See unresolved issues
+
 
 ###Step 4
 Modify your bosh-lite deployment
@@ -91,16 +94,17 @@ Test CF SSO Authentication
 **Note 2:** The SAML process should automatically create new users in UAA, so they can login to CF, but they won't have any roles assigned.   An administrator needs to `cf set-space-role` for this user at minimum to allow this user to `cf push` applications
 
 # Debugging
-- `bosh ssh login_z1`, and `tail -f /var/vcap/sys/log/login/login.log`
-- `bosh ssh uaa_z1`, and `tail -f /var/vcap/sys/log/uaa/uaa.log`
+- `bosh ssh login_z1`, and `sudo tail -f /var/vcap/sys/log/login/login.log`
+- `bosh ssh uaa_z1`, and `sudo tail -f /var/vcap/sys/log/uaa/uaa.log`
 - `tail -f ~/openam/openam/debug/Federation`
 - `tail -f ~/openam/openam/log/SAML2.access`
 - `tail -f ~/openam/openam/log/SAML2.error`
 - If tweaking `manifest.yml` for bosh-lite , some config template changes don't lead to a restart of the login job, you may want to `bosh restart login_z1 0` to kick it
 
-# Unresolved issues
+# Unresolved issues ; TODO
 
 * CF login server should validate IDP key, haven't looked at this yet
 * CF login-server seems to insist on a NameID of  `urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified` of which the value must be an email address, no matter what nameID I put in the manifest under `saml` or `saml:providers:openam-local`, might be worth digging into further
 * Web Access Management for actual buildpacks with OpenAM requires remote registration of the OpenAM agent at start time, this is in theory doable but could create a mess of agents in OpenAM if there's no garbage collection of dead agents due to failures or (de)scaling
 * Test with legacy OpenSSO, OpenAM 12
+* Test on PCF vSphere with Ops Manager instead of bosh-lite
