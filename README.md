@@ -1,2 +1,1 @@
-# telus-poc
-Telus POC collaboration
+various CF example / walkthroughs
